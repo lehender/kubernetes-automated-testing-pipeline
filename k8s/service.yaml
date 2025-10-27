@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-testing-pipeline
+  namespace: testing-pipeline
+spec:
+  type: ClusterIP
+  selector:
+    app: k8s-testing-pipeline
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
