@@ -19,38 +19,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r app/requirements.txt
           pip install pytest
-
-      - name: Debug environment
-        run: |
-          python -V
-          pwd
-          ls -R
-          python - <<'PY'
-          import sys, os
-          print("CWD:", os.getcwd())
-          print("PYTHONPATH:", os.environ.get("PYTHONPATH"))
-          print("sys.path:", sys.path)
-          import importlib; importlib.import_module("app.main")
-          print("Imported app.main OK")
-          PY
-        env:
-          PYTHONPATH: .
-
       - name: Run tests
-        env:
-          PYTHONPATH: .
-        run: pytest -q tests/
+        env: { PYTHONPATH: . }
+        run: pytest -q
 
   docker-build:
     runs-on: ubuntu-latest
@@ -78,12 +58,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GHCR (PAT)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -91,4 +71,4 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: true
-          tags: ghcr.io/lehender/k8s-testing-pipeline:latest
+          tags: ${{ env.IMAGE }}
